@@ -10,15 +10,14 @@ function [ perPixelAccuracy,cofusionMatrix,resultL, gtLabelImg ] = parsingFunc(q
 % segmentName:      string, folder name that segments of imgs locate in
 
 % OUTPUT
-% perPixelAccuracy:scalar
-% cofusionMatrix:
-% resultL:
-% gtLabelImg:
+% perPixelAccuracy: scalar, per pixel accuracy of an img
+% cofusionMatrix:   n*n matrix, confusion matrix, actual labels(1st dim) vs predicted labels(2nd dim)
+%                   where n is allLabelNum
+% resultL:          n by m matrix, estimated labels of testing img
+%                   where n is number of pixels in 1st dim, m is number of pixels in 2nd dim  
+% gtLabelImg:       1*m vector, ground truth label (excludes label '0')
+%                   m is # of pixels in an img - # of pixels with ground truth label '0' 
 
-
-%% Initialization
-cofusionMatrix=0;
-gtLabelImg=0;
 
 
 %% Retrieval of Image
@@ -81,7 +80,8 @@ tic
 toc
 
 
-perPixelAccuracy = show(qrSet,resultL-1, qImgName, path)
+% performance of prediction
+[ perPixelAccuracy,cofusionMatrix,resultL, gtLabelImg] = performance(qrSet,resultL-1, qImgName, path,allLabelNum);
 
 
 
@@ -134,7 +134,7 @@ perPixelAccuracy = show(qrSet,resultL-1, qImgName, path)
 % toc
 % 
 % fprintf('tmpPA = %f\n',tmpPA);
-% %[ perPixelAccuracy,cofusionMatrix,resultL, gtLabelImg] = performance(qrSet,resultL-1, qImgName, path,allLabelNum);
+
 % perform = show(qrSet,resultL-1, qImgName, path)
 
 

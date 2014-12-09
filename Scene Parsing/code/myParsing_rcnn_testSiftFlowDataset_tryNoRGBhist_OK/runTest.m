@@ -69,23 +69,31 @@ trainSet = dataSet(trainInd);
 
 cofusionMatrix=zeros(allLabelNum,allLabelNum);
 pixelAccuracy=zeros(length(testName),1);
-for i=1:1 %length(testName)
+for i=1:10 %length(testName)
         
     qImgIndex = i;
-    
-    
+        
     tic
     [ pixelAccuracy(i),cM,resultL, gtL ] = parsingFunc(qImgIndex,testSet,trainSet,path,allLabelNum,segmentName);
-	cofusionMatrix=cofusionMatrix+cM;
-    fprintf('qImgIndex= %d, per-pixel accuracy = %f\n',qImgIndex,pixelAccuracy(i));
+	
+    cofusionMatrix=cofusionMatrix+cM;
+    fprintf('qImgIndex= %d, Per-Pixel accuracy = %f\n',qImgIndex,pixelAccuracy(i));
     toc
     
 end
-cAll=sum(cofusionMatrix,2);
+
+% total occurance for each label
+labelOccurNum =sum(cofusionMatrix,2);
+
+% correct occurance for each label
 correctNum = diag(cofusionMatrix);
-correctNum (find(cAll==0))=[];
-cAll(find(cAll==0))=[];
-perClassAccuracy=sum(correctNum./cAll)/length(cAll)
+
+% exclude labels which never appear
+correctNum (labelOccurNum==0)=[];
+labelOccurNum(labelOccurNum==0)=[];
+
+% average per-class & per-pixel accuracy?
+perClassAccuracy=sum(correctNum./labelOccurNum)/length(labelOccurNum)
 perPixelAccuracy=mean(pixelAccuracy)
 
 
