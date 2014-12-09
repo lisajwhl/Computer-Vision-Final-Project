@@ -13,25 +13,25 @@ function [ unary ] = unaryEnergy3( qrSet, allLabelNum, qImgSize, path, qImg )
 % qImgSize:    1 by 3 vector, size and color channel num of query image
 % path:        structure, path for different data,
 %              with fields 'HOMECODE', 'MainFolder', 'imagePath', 'labelImgPath', 'spPath'
-% qImg:        n by m matrix, query image pixels values (RGB),
-%              where n is image hight, m is image width (not used so far)
+% qImg:        H by W matrix, query image pixels values (RGB),
+%              where H is image hight, W is image width (not used so far)
+
 % OUTPUT
-% unary:       allLabelNum by (n*m) matrix, unary term for each pixel in query image
+% unary:       allLabelNum by (H*W) matrix, unary term for each pixel in query image
 %              with respect to each label,
-%              where allLabelNum is # rows, (n*m) is # pixels in query image
+%              where allLabelNum is # labels (# row), (H*W) is # pixels in query image (# column)
+
     % total pixel number
-    N = qImgSize(1)*qImgSize(2);
+    N = qImgSize(1) * qImgSize(2);
     
     % label(1st dim) vs all pixels(2nd dim) unary term initialize
     unary = zeros(allLabelNum, N);
-    
-    %%% ma's part
-    unary_ma = zeros(allLabelNum, N);
     
     for i = 1:qrSet.qSPnum % for each query region
         for j = 1:size(qrSet.qSet.retInd, 1) % for each retrieval region
             
             %% Query Region Pixel Index  &  Retrieval Region Labels
+
             % index of ith query region's jth nearest neighbor retrieval region
             spRInd = qrSet.qSet.retInd(j, i);
             
@@ -40,6 +40,7 @@ function [ unary ] = unaryEnergy3( qrSet, allLabelNum, qImgSize, path, qImg )
             
             % location of this retrieval region in retrieval img
             location = qrSet.rSet.location(:, spRInd); % [uppest row idx, lowest row idx, leftest col idx, rightest col idx]
+
             % load the retrieval img that this retrieval region locates at
             similarImg_label = importdata(fullfile(path.labelImgPath, [qrSet.fileName{imgInd} '.mat']));
             %figure, imshow(label2rgb(similarImg_label.S));
@@ -51,29 +52,14 @@ function [ unary ] = unaryEnergy3( qrSet, allLabelNum, qImgSize, path, qImg )
             % pixel index of query region 
             query_index = find(mask == 1);
             
-            %%% ma's part
-            % mask of not region's location
-            point = find(mask'==1);
-            
             % get the retrieval region pixels from retrieval img which it locates at
             similarImg_label = similarImg_label.S(location(1):location(2), location(3):location(4));
             
             % resize this region to be the same size as query region
             similarImg_label = imresize(similarImg_label, [qrSet.qSet.location(2,i)-qrSet.qSet.location(1,i)+1, qrSet.qSet.location(4,i)-qrSet.qSet.location(3,i)+1], 'nearest');
             
-            %%% ma's part
-            similarImg = reshape(similarImg_label',[1, numel(similarImg_label)]);
-            
             % reshape this region to be a row vector
             similarImg_label = reshape(similarImg_label,[1, numel(similarImg_label)]);
-            
-            %%% ma's part
-            % ignore the part that img pixel value = 0
-            point(similarImg'==0)=[];
-            similarImg(similarImg'==0)=[];
-            point=point';
-            similarImg=double(similarImg);
-            
             
             % ignore the part that retrieval label value = 0
             query_index(similarImg_label == 0) = [];
@@ -103,14 +89,8 @@ function [ unary ] = unaryEnergy3( qrSet, allLabelNum, qImgSize, path, qImg )
             % update unary term for location in region
             update_unary_idx = (query_index-1)*allLabelNum + similarImg_label;
             unary(update_unary_idx) = unary(update_unary_idx) - windowSim* (1./(qrSet.candidateLHist(similarImg_label)'.^r1)) * r2/numel(similarImg_label);
-        
-            %%% ma's part
-            unary_ma((point-1)*33+similarImg) = unary_ma((point-1)*33+similarImg) - windowSim* (1./(qrSet.candidateLHist(similarImg)'.^r1)) * r2/numel(similarImg);
-        
-            
-           
 
-        end
+         end
     end
       
     % normalize unary to [-1,0]
@@ -120,6 +100,7 @@ function [ unary ] = unaryEnergy3( qrSet, allLabelNum, qImgSize, path, qImg )
     unary = (unary/diffU) - (minU/diffU) - 1;
     
 end
+
 function [dis] = colorDis( x , y )
     alpha = 0.1;
 %     x=double(squeeze(x));
