@@ -40,25 +40,26 @@ function [ perPixelAccuracy,cofusionMatrix,resultL, gtL] = performance( qrSet , 
 gtImg = load(fullfile(path.labelImgPath,[qImgName '.mat']));
 gtLName = gtImg.names;
 gtL = gtImg.S;
+labelNum = length(qrSet.labelImg{1}.names);
 
 
 %% Plot
 
-%%% show original img
+%%% show query image
 figure, imshow(imread(fullfile(path.imagePath, [qImgName '.jpg'])));
 title('Query Image');
 
-%%% show ground truth label
+%%% show groundtruth labels of query image
 figure ; hold on;
 
 % random seeds
 rng(150);
 
 % random label color
-labelColors = rand([33, 3]);
+labelColors = rand([labelNum, 3]);
 
 % plot legend
-for i = 1:33
+for i = 1:labelNum
     plot([0 0], 'LineWidth', 8, 'Color', labelColors(i,:))
 end
 legend(gtLName, 'Location', 'eastoutside');
